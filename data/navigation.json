@@ -3,69 +3,43 @@
     "siteName": "SimPage",
     "siteLogo": "",
     "greeting": "",
-    "footer": "欢迎来到我的主页",
-    "weather": {
-      "city": [
-        "北京"
-      ],
-      "locations": [
-        {
-          "city": "北京",
-          "name": "北京",
-          "latitude": 39.90499,
-          "longitude": 116.40529,
-          "id": "101010100"
-        }
-      ],
-      "apiKey": "",
-      "query": [
-        "Beijing"
-      ],
-      "apiHost": ""
-    }
+    "footer": "欢迎来到我的导航页"
   },
   "apps": [
-    {
-      "id": "app-figma",
-      "name": "Figma",
-      "url": "https://www.figma.com/",
-      "description": "协作式界面设计工具。",
-      "icon": "https://icon.ooo/www.figma.com"
-    },
     {
       "id": "app-notion",
       "name": "Notion",
       "url": "https://www.notion.so/",
       "description": "多合一的笔记与知识管理平台。",
-      "icon": "https://icon.ooo/www.notion.so"
+      "icon": "https://favicon.im/www.notion.so"
     },
     {
       "id": "app-slack",
       "name": "Slack",
       "url": "https://slack.com/",
       "description": "团队即时沟通与协作中心。",
-      "icon": "https://icon.ooo/slack.com"
+      "icon": "https://favicon.im/slack.com"
     },
     {
       "id": "app-github",
       "name": "GitHub",
       "url": "https://github.com/",
       "description": "代码托管与协作平台。",
-      "icon": "https://icon.ooo/github.com"
+      "icon": "https://favicon.im/github.com"
     },
     {
       "id": "app-canva",
       "name": "Canva",
       "url": "https://www.canva.com/",
       "description": "简单易用的在线设计工具。",
-      "icon": "https://icon.ooo/www.canva.com"
+      "icon": "https://favicon.im/www.canva.com"
     },
     {
       "id": "0cfcf4ba-2aeb-48f7-9d34-cc279ca0e949",
       "name": "linuxdo",
       "url": "https://linux.do",
       "description": "新的理想型社区",
-      "icon": "https://icon.ooo/linux.do"
+      "icon": "https://favicon.im/linux.do"
     }
   ],
   "bookmarks": [
@@ -74,7 +48,7 @@
       "name": "开源中国",
       "url": "https://www.oschina.net/",
       "description": "聚焦开源信息与技术社区。",
-      "icon": "https://icon.ooo/www.oschina.net",
+      "icon": "https://favicon.im/www.oschina.net",
       "category": "技术社区"
     },
     {
@@ -82,7 +56,7 @@
       "name": "少数派",
       "url": "https://sspai.com/",
       "description": "关注效率工具与生活方式的媒体。",
-      "icon": "https://icon.ooo/sspai.com",
+      "icon": "https://favicon.im/sspai.com",
       "category": "效率与生活"
     },
     {
@@ -90,7 +64,7 @@
       "name": "知乎",
       "url": "https://www.zhihu.com/",
       "description": "问答与知识分享社区。",
-      "icon": "https://icon.ooo/www.zhihu.com",
+      "icon": "https://favicon.im/www.zhihu.com",
       "category": "知识学习"
     },
     {
@@ -98,7 +72,7 @@
       "name": "即刻",
       "url": "https://m.okjike.com/",
       "description": "兴趣社交与资讯聚合平台。",
-      "icon": "https://icon.ooo/m.okjike.com",
+      "icon": "https://favicon.im/m.okjike.com",
       "category": "资讯聚合"
     },
     {
@@ -106,12 +80,12 @@
       "name": "稀土掘金",
       "url": "https://juejin.cn/",
       "description": "开发者技术社区与优质内容。",
-      "icon": "https://icon.ooo/juejin.cn",
+      "icon": "https://favicon.im/juejin.cn",
       "category": "技术社区"
     }
   ],
   "stats": {
-    "visitorCount": 0
+    "visitorCount": 10
   },
   "admin": {
     "passwordHash": "8175b7eb0a1015e47b040ef43d758212792ac8b0ec7d284f3c877b95d43c04dbecfe772d93e753de3f53bc63f53cc26d3d3f284231f7b3599883a222045b0372",

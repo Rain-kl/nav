@@ -16,10 +16,15 @@ const modalDescriptionInput = document.getElementById("editor-description");
 const modalIconInput = document.getElementById("editor-icon");
 const modalCategoryField = document.getElementById("editor-category-field");
 const modalCategoryInput = document.getElementById("editor-category");
-const modalCategoryPlaceholder =
-  modalCategoryField ? document.createComment("modal-category-placeholder") : null;
+const modalCategoryPlaceholder = modalCategoryField
+  ? document.createComment("modal-category-placeholder")
+  : null;
 
-if (modalCategoryField && modalCategoryPlaceholder && modalCategoryField.parentNode) {
+if (
+  modalCategoryField &&
+  modalCategoryPlaceholder &&
+  modalCategoryField.parentNode
+) {
   modalCategoryField.replaceWith(modalCategoryPlaceholder);
   if (modalCategoryInput) {
     modalCategoryInput.disabled = true;
@@ -34,11 +39,6 @@ const siteLogoInput = document.getElementById("site-logo");
 const siteGreetingInput = document.getElementById("site-greeting");
 const siteFooterInput = document.getElementById("site-footer-content");
 const siteFooterPreview = document.getElementById("site-footer-preview");
-const siteWeatherCityInput = document.getElementById("site-weather-city");
-const siteWeatherApiKeyInput = document.getElementById("site-weather-api-key");
-const siteWeatherApiHostInput = document.getElementById("site-weather-api-host");
-const weatherApiTestButton = document.getElementById("weather-api-test-button");
-const siteWeatherSummary = document.getElementById("site-weather-summary");
 const categorySuggestions = document.getElementById("category-suggestions");
 const authOverlay = document.getElementById("auth-overlay");
 const loginForm = document.getElementById("login-form");
@@ -53,7 +53,9 @@ const passwordMessage = document.getElementById("password-message");
 const backToTopButton = document.getElementById("back-to-top");
 const faviconLink = document.getElementById("site-favicon");
 const backToAppsButton = document.getElementById("back-to-apps-button");
-const backToBookmarksButton = document.getElementById("back-to-bookmarks-button");
+const backToBookmarksButton = document.getElementById(
+  "back-to-bookmarks-button",
+);
 
 const typeLabels = {
   apps: "应用",
@@ -88,124 +90,23 @@ const ADMIN_TITLE_SUFFIX = " · 后台管理";
 const faviconCache = new Map();
 const BACK_TO_TOP_THRESHOLD = 320;
 
-const DEFAULT_WEATHER_SETTINGS = {
-  city: "Beijing",
-  apiKey: "",
-  query: [],
-  apiHost: "api.qweather.com"
-};
-
-const QWEATHER_CITY_ALIAS_CODES = {
-  "5317-4eac": "Beijing",
-  "4e0a-6d77": "Shanghai",
-  "5e7f-5dde": "Guangzhou",
-  "6df1-5733": "Shenzhen",
-  "676d-5dde": "Hangzhou",
-  "5357-4eac": "Nanjing",
-  "5929-6d25": "Tianjin",
-  "6b66-6c49": "Wuhan",
-  "6210-90fd": "Chengdu",
-  "91cd-5e86": "Chongqing",
-  "897f-5b89": "Xian",
-  "82cf-5dde": "Suzhou",
-  "9752-5c9b": "Qingdao",
-  "53a6-95e8": "Xiamen",
-  "5927-8fde": "Dalian",
-  "5b81-6ce2": "Ningbo",
-  "6c88-9633": "Shenyang",
-  "54c8-5c14-6ee8": "Harbin",
-  "957f-6625": "Changchun",
-  "957f-6c99": "Changsha",
-  "90d1-5dde": "Zhengzhou",
-  "6d4e-5357": "Jinan",
-  "798f-5dde": "Fuzhou",
-  "5408-80a5": "Hefei",
-  "6606-660e": "Kunming",
-  "5357-5b81": "Nanning",
-  "8d35-9633": "Guiyang",
-  "5170-5dde": "Lanzhou",
-  "592a-539f": "Taiyuan",
-  "77f3-5bb6-5e84": "Shijiazhuang",
-  "4e4c-9c81-6728-9f50": "Urumqi",
-  "62c9-8428": "Lhasa",
-  "9999-6e2f": "Hong Kong",
-  "6fb3-95e8": "Macau",
-  "53f0-5317": "Taipei"
-};
-
-function splitWeatherCityInput(value) {
-  if (typeof value !== "string") {
-    return [];
-  }
-  const trimmed = value.trim();
-  return trimmed ? trimmed.split(/\s+/).filter(Boolean) : [];
-}
-
-function buildCityAliasCodeKey(value) {
-  if (!value) {
-    return "";
-  }
-  return Array.from(value)
-    .map((char) => char.codePointAt(0).toString(16))
-    .join("-");
-}
-
-function isAsciiText(value) {
-  return /^[\x00-\x7F]+$/.test(value);
-}
-
-function buildWeatherQueryTokens(cityTokens) {
-  if (!Array.isArray(cityTokens)) {
-    return [];
-  }
-  return cityTokens.map((token) => {
-    const trimmed = String(token || "").trim();
-    if (!trimmed) {
-      return "";
-    }
-    if (isAsciiText(trimmed)) {
-      return trimmed;
-    }
-    const codeKey = buildCityAliasCodeKey(trimmed);
-    return QWEATHER_CITY_ALIAS_CODES[codeKey] || "";
-  });
-}
-
-function normaliseWeatherQueryValue(rawQuery) {
-  if (typeof rawQuery === "string") {
-    const trimmed = rawQuery.trim();
-    return trimmed ? trimmed.split(/\s+/).filter(Boolean) : [];
-  }
-  if (Array.isArray(rawQuery)) {
-    return rawQuery.map((value) => String(value || "").trim()).filter(Boolean);
-  }
-  return [];
-}
-
-function normaliseApiHostInput(value) {
-  if (typeof value !== "string") {
-    return "";
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return "";
-  }
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed.replace(/\/+$/, "");
-  }
-  return `https://${trimmed.replace(/\/+$/, "")}`;
-}
-
-function shouldIncludeWeatherQuery(queryTokens) {
-  return Array.isArray(queryTokens) && queryTokens.some(Boolean);
-}
-
 const defaultSettings = {
-  siteName: siteNameInput && siteNameInput.value.trim() ? siteNameInput.value.trim() : "SimPage",
-  siteLogo: siteLogoInput && siteLogoInput.value.trim() ? siteLogoInput.value.trim() : "",
-  greeting: siteGreetingInput && siteGreetingInput.value.trim() ? siteGreetingInput.value.trim() : "",
-  footer: siteFooterInput && siteFooterInput.value ? normaliseFooterValue(siteFooterInput.value) : "",
-  weather: createDefaultWeatherSettings(),
+  siteName:
+    siteNameInput && siteNameInput.value.trim()
+      ? siteNameInput.value.trim()
+      : "SimPage",
+  siteLogo:
+    siteLogoInput && siteLogoInput.value.trim()
+      ? siteLogoInput.value.trim()
+      : "",
+  greeting:
+    siteGreetingInput && siteGreetingInput.value.trim()
+      ? siteGreetingInput.value.trim()
+      : "",
+  footer:
+    siteFooterInput && siteFooterInput.value
+      ? normaliseFooterValue(siteFooterInput.value)
+      : "",
 };
 
 const state = {
@@ -216,7 +117,6 @@ const state = {
     siteLogo: defaultSettings.siteLogo,
     greeting: defaultSettings.greeting,
     footer: defaultSettings.footer,
-    weather: { ...defaultSettings.weather },
   },
 };
 
@@ -289,7 +189,6 @@ function normaliseSettingsIncoming(input) {
     siteLogo: defaultSettings.siteLogo,
     greeting: defaultSettings.greeting,
     footer: defaultSettings.footer,
-    weather: { ...defaultSettings.weather },
   };
 
   if (!input || typeof input !== "object") {
@@ -309,282 +208,15 @@ function normaliseSettingsIncoming(input) {
     prepared.footer = normaliseFooterValue(input.footer);
   }
 
-  if (input.weather && typeof input.weather === "object") {
-    prepared.weather = normaliseWeatherSettingsIncoming(input.weather);
-  } else if (input.weatherLocation && typeof input.weatherLocation === "object") {
-    prepared.weather = normaliseWeatherSettingsIncoming({ weatherLocation: input.weatherLocation });
-  } else {
-    prepared.weather = normaliseWeatherSettingsIncoming(null);
-  }
-
   return prepared;
-}
-
-function createDefaultWeatherSettings() {
-  return {
-    city: DEFAULT_WEATHER_SETTINGS.city,
-    apiKey: DEFAULT_WEATHER_SETTINGS.apiKey,
-    query: Array.isArray(DEFAULT_WEATHER_SETTINGS.query) ? [...DEFAULT_WEATHER_SETTINGS.query] : [],
-    apiHost: DEFAULT_WEATHER_SETTINGS.apiHost,
-  };
-}
-
-function normaliseWeatherSettingsIncoming(raw) {
-  const fallback = createDefaultWeatherSettings();
-  if (!raw || typeof raw !== "object") {
-    return { ...fallback };
-  }
-
-  if (raw.weatherLocation && typeof raw.weatherLocation === "object") {
-    const legacy = raw.weatherLocation;
-    const city =
-      typeof legacy.label === "string" && legacy.label.trim()
-        ? legacy.label.trim()
-        : typeof legacy.id === "string" && legacy.id.trim()
-        ? legacy.id.trim()
-        : "";
-    return {
-      city: city || fallback.city,
-      apiKey: fallback.apiKey,
-    };
-  }
-
-  const weather = { ...fallback };
-
-  if (typeof raw.city === "string" && raw.city.trim()) {
-    weather.city = raw.city.trim();
-  } else if (typeof raw.label === "string" && raw.label.trim()) {
-    weather.city = raw.label.trim();
-  } else if (typeof raw.name === "string" && raw.name.trim()) {
-    weather.city = raw.name.trim();
-  }
-
-  if (typeof raw.apiKey === "string" && raw.apiKey.trim()) {
-    weather.apiKey = raw.apiKey.trim();
-  }
-  if (typeof raw.apiHost === "string") {
-    const host = normaliseApiHostInput(raw.apiHost);
-    if (host) {
-      weather.apiHost = host;
-    }
-  }
-  if (raw.query !== undefined) {
-    const queryTokens = normaliseWeatherQueryValue(raw.query);
-    if (queryTokens.length > 0) {
-      weather.query = queryTokens;
-    }
-  }
-
-  if (!weather.city) {
-    weather.city = fallback.city;
-  }
-
-  return weather;
-}
-
-function collectWeatherSettingsFromInputs(previous = state.settings.weather) {
-  const base =
-    previous && typeof previous === "object" ? { ...previous } : createDefaultWeatherSettings();
-
-  const cityRaw = siteWeatherCityInput ? siteWeatherCityInput.value : "";
-  const apiKeyRaw = siteWeatherApiKeyInput ? siteWeatherApiKeyInput.value : "";
-  const apiHostRaw = siteWeatherApiHostInput ? siteWeatherApiHostInput.value : "";
-  const cityTokens = splitWeatherCityInput(cityRaw);
-  const queryTokens = buildWeatherQueryTokens(cityTokens);
-
-  return {
-    ...base,
-    city: cityRaw.trim(),
-    apiKey: apiKeyRaw.trim(),
-    query: queryTokens,
-    apiHost: normaliseApiHostInput(apiHostRaw),
-  };
-}
-
-function updateWeatherSummary(weather) {
-  if (!siteWeatherSummary) return;
-
-  const city = typeof weather?.city === "string" ? weather.city.trim() : "";
-  const apiKey = typeof weather?.apiKey === "string" ? weather.apiKey.trim() : "";
-
-  if (!city) {
-    siteWeatherSummary.textContent = "Enter city names to show weather.";
-    return;
-  }
-
-  if (!apiKey) {
-    siteWeatherSummary.textContent = `City set to ${city}. Add a QWeather API Key to enable live weather.`;
-    return;
-  }
-
-  siteWeatherSummary.textContent = `${city} - QWeather enabled.`;
-}
-
-
-function formatWeatherApiErrorMessage(rawMessage) {
-  const message = typeof rawMessage === "string" ? rawMessage.trim() : "";
-  if (!message) {
-    return "Weather test failed.";
-  }
-  const mapQWeatherCode = (code) => {
-    switch (code) {
-      case "401":
-      case "403":
-        return "Invalid API Key or API Host.";
-      case "402":
-        return "API quota exhausted. Try again later.";
-      case "429":
-        return "Too many requests. Please wait and retry.";
-      case "204":
-        return "City not found. Check the spelling.";
-      default:
-        return null;
-    }
-  };
-  if (message.includes("Missing QWeather API Key")) {
-    return "Please enter a QWeather API Key.";
-  }
-  if (message.includes("City name is required") || message.includes("Failed to resolve city location")) {
-    return "City not found. Check the spelling.";
-  }
-  const geocodeMatch = message.match(/QWeather geocode error: ([^\\.]+)/);
-  if (geocodeMatch) {
-    const hint = mapQWeatherCode(geocodeMatch[1]);
-    if (geocodeMatch[1] === "invalid_response") {
-      return "City lookup failed. API Host may be unreachable.";
-    }
-    return hint || `City lookup failed (code ${geocodeMatch[1]}). Check API Host/Key or city spelling.`;
-  }
-  const nowMatch = message.match(/QWeather now error: ([^\\.]+)/);
-  if (nowMatch) {
-    const hint = mapQWeatherCode(nowMatch[1]);
-    if (nowMatch[1] === "invalid_response") {
-      return "Weather service unavailable. API Host may be unreachable.";
-    }
-    return hint || `Weather service error (code ${nowMatch[1]}). Check API Host/Key or plan.`;
-  }
-  if (message.includes("Weather request failed")) {
-    return "Weather service is temporarily unavailable.";
-  }
-  return message;
-}
-
-async function handleWeatherApiTest() {
-  if (!authToken) {
-    setStatus("Please log in to test the API key.", "error");
-    return;
-  }
-
-  const city = siteWeatherCityInput ? siteWeatherCityInput.value.trim() : "";
-  const apiKey = siteWeatherApiKeyInput ? siteWeatherApiKeyInput.value.trim() : "";
-  const apiHost = siteWeatherApiHostInput ? siteWeatherApiHostInput.value.trim() : "";
-  const cityTokens = splitWeatherCityInput(city);
-  const queryTokens = buildWeatherQueryTokens(cityTokens);
-
-  if (!city) {
-    setStatus("Please enter a city name first.", "error");
-    siteWeatherCityInput?.focus?.();
-    return;
-  }
-  if (!apiKey) {
-    setStatus("Please enter a QWeather API Key.", "error");
-    siteWeatherApiKeyInput?.focus?.();
-    return;
-  }
-
-  setStatus("Testing API Key...", "neutral");
-
-  try {
-    const requestPayload = { city, apiKey };
-    if (shouldIncludeWeatherQuery(queryTokens)) {
-      requestPayload.query = queryTokens;
-    }
-    if (apiHost) {
-      requestPayload.apiHost = apiHost;
-    }
-
-    const response = await fetch("/api/admin/weather-test", {
-      method: "POST",
-      headers: buildAuthHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(requestPayload),
-    });
-
-    if (response.status === 401) {
-      handleUnauthorized("Login expired. Please sign in again.");
-      return;
-    }
-
-    let payload;
-    try {
-      payload = await response.json();
-    } catch (_error) {
-      throw new Error("Weather test failed.");
-    }
-
-    if (!response.ok || payload?.success === false) {
-      const message =
-        typeof payload?.message === "string" && payload.message.trim()
-          ? payload.message.trim()
-          : "Weather test failed.";
-      setStatus(formatWeatherApiErrorMessage(message), "error");
-      return;
-    }
-
-    const cityLabel = typeof payload?.data?.city === "string" ? payload.data.city.trim() : "";
-    setStatus(`Weather OK for ${cityLabel || city}. Remember to save.`, "success");
-  } catch (_error) {
-    setStatus("Weather test failed. Try again.", "error");
-  }
-}
-
-function handleWeatherInputChange() {
-  const nextWeather = collectWeatherSettingsFromInputs();
-  state.settings.weather = nextWeather;
-  updateWeatherSummary(nextWeather);
-  markDirty();
-  setStatus("天气配置已更新，记得保存。", "neutral");
-}
-
-function validateWeatherSettings(weather) {
-  const resolved = weather && typeof weather === "object" ? weather : createDefaultWeatherSettings();
-  const city = typeof resolved.city === "string" ? resolved.city.trim() : "";
-  const apiKey = typeof resolved.apiKey === "string" ? resolved.apiKey.trim() : "";
-  const apiHost = normaliseApiHostInput(typeof resolved.apiHost === "string" ? resolved.apiHost : "");
-  const queryTokens = buildWeatherQueryTokens(splitWeatherCityInput(city));
-  if (!city) {
-    return { valid: false, message: "Please enter a city name.", focus: siteWeatherCityInput };
-  }
-  if (!apiKey) {
-    return { valid: false, message: "Please enter a QWeather API Key.", focus: siteWeatherApiKeyInput };
-  }
-  return {
-    valid: true,
-    value: {
-      city,
-      apiKey,
-      query: queryTokens,
-      apiHost: apiHost || DEFAULT_WEATHER_SETTINGS.apiHost,
-    },
-  };
-}
-
-function buildWeatherPayload(weather) {
-  const city = typeof weather?.city === "string" ? weather.city.trim() : "";
-  const apiKey = typeof weather?.apiKey === "string" ? weather.apiKey.trim() : "";
-  const apiHost = normaliseApiHostInput(typeof weather?.apiHost === "string" ? weather.apiHost : "");
-  const queryTokens = buildWeatherQueryTokens(splitWeatherCityInput(city));
-  const payload = { city, apiKey, apiHost: apiHost || DEFAULT_WEATHER_SETTINGS.apiHost };
-  if (shouldIncludeWeatherQuery(queryTokens)) {
-    payload.query = queryTokens;
-  }
-  return payload;
 }
 
 function updateFooterPreview(content) {
   if (!siteFooterPreview) return;
   const clean = normaliseFooterValue(content);
   if (!clean) {
-    siteFooterPreview.innerHTML = "<span class=\"footer-preview-empty\">暂无内容</span>";
+    siteFooterPreview.innerHTML =
+      '<span class="footer-preview-empty">暂无内容</span>';
     return;
   }
   siteFooterPreview.innerHTML = renderMarkdown(clean);
@@ -596,21 +228,6 @@ function applySettingsToInputs(settings) {
   if (siteGreetingInput) siteGreetingInput.value = settings.greeting || "";
   if (siteFooterInput) siteFooterInput.value = settings.footer || "";
   updateFooterPreview(settings.footer);
-
-  const normalisedWeather = normaliseWeatherSettingsIncoming(settings.weather);
-  state.settings.weather = normalisedWeather;
-
-  if (siteWeatherCityInput) {
-    siteWeatherCityInput.value = normalisedWeather.city || "";
-  }
-  if (siteWeatherApiKeyInput) {
-    siteWeatherApiKeyInput.value = normalisedWeather.apiKey || "";
-  }
-  if (siteWeatherApiHostInput) {
-    siteWeatherApiHostInput.value = normalisedWeather.apiHost || "";
-  }
-
-  updateWeatherSummary(normalisedWeather);
   updatePageIdentity(settings);
 }
 
@@ -636,7 +253,9 @@ function updatePageIdentity(settings) {
 
 function updateDocumentTitle(siteName) {
   const clean = typeof siteName === "string" ? siteName.trim() : "";
-  document.title = clean ? `${clean}${ADMIN_TITLE_SUFFIX}` : defaultDocumentTitle;
+  document.title = clean
+    ? `${clean}${ADMIN_TITLE_SUFFIX}`
+    : defaultDocumentTitle;
 }
 
 function applyDefaultFavicon() {
@@ -743,7 +362,10 @@ function createEmojiFavicon(symbolValue) {
 }
 
 function isLogoUrl(value) {
-  return typeof value === "string" && (/^https?:\/\//i.test(value) || value.startsWith("data:"));
+  return (
+    typeof value === "string" &&
+    (/^https?:\/\//i.test(value) || value.startsWith("data:"))
+  );
 }
 
 function render() {
@@ -759,7 +381,9 @@ function renderList(type, container, items) {
     const hint = document.createElement("p");
     hint.className = "empty-hint";
     hint.textContent =
-      type === "apps" ? "暂无应用，点击上方按钮添加。" : "暂无书签，点击上方按钮添加。";
+      type === "apps"
+        ? "暂无应用，点击上方按钮添加。"
+        : "暂无书签，点击上方按钮添加。";
     replaceChildrenSafe(container, hint);
     return;
   }
@@ -852,12 +476,14 @@ function buildTableRow(type, item, index, columns) {
         break;
       }
       case "category": {
-        const label = typeof item.category === "string" ? item.category.trim() : "";
+        const label =
+          typeof item.category === "string" ? item.category.trim() : "";
         cell.textContent = label || "—";
         break;
       }
       case "description": {
-        const description = typeof item.description === "string" ? item.description.trim() : "";
+        const description =
+          typeof item.description === "string" ? item.description.trim() : "";
         cell.textContent = description || "—";
         break;
       }
@@ -887,7 +513,10 @@ function buildTableRow(type, item, index, columns) {
   });
 
   row.addEventListener("keydown", (event) => {
-    if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
+    if (
+      (event.key === "Enter" || event.key === " ") &&
+      !event.target.closest("button")
+    ) {
       event.preventDefault();
       openEditor(type, index);
     }
@@ -908,7 +537,11 @@ function createNameCell(type, item, index) {
   const iconWrapper = document.createElement("span");
   iconWrapper.className = "admin-item-icon";
   const iconContent = String(item.icon || "").trim();
-  if (iconContent.startsWith("http://") || iconContent.startsWith("https://") || iconContent.startsWith("data:")) {
+  if (
+    iconContent.startsWith("http://") ||
+    iconContent.startsWith("https://") ||
+    iconContent.startsWith("data:")
+  ) {
     const img = document.createElement("img");
     img.src = iconContent;
     img.alt = `${displayName} 图标`;
@@ -1004,12 +637,15 @@ function openEditor(type, index) {
   modalContext = { type, index, isNew };
 
   if (modalTitle) {
-    modalTitle.textContent = isNew ? `添加${typeLabels[type]}` : `编辑${typeLabels[type]}`;
+    modalTitle.textContent = isNew
+      ? `添加${typeLabels[type]}`
+      : `编辑${typeLabels[type]}`;
   }
 
   if (modalNameInput) modalNameInput.value = reference.name || "";
   if (modalUrlInput) modalUrlInput.value = reference.url || "";
-  if (modalDescriptionInput) modalDescriptionInput.value = reference.description || "";
+  if (modalDescriptionInput)
+    modalDescriptionInput.value = reference.description || "";
   if (modalIconInput) modalIconInput.value = reference.icon || "";
 
   if (type === "bookmarks") {
@@ -1059,7 +695,9 @@ function collectPayloadFromModal() {
   const type = modalContext.type;
   const name = modalNameInput ? modalNameInput.value.trim() : "";
   const url = modalUrlInput ? modalUrlInput.value.trim() : "";
-  const description = modalDescriptionInput ? modalDescriptionInput.value.trim() : "";
+  const description = modalDescriptionInput
+    ? modalDescriptionInput.value.trim()
+    : "";
   const icon = modalIconInput ? modalIconInput.value.trim() : "";
   const category = modalCategoryInput ? modalCategoryInput.value.trim() : "";
 
@@ -1112,14 +750,15 @@ function applyModalChanges(event) {
 
   render();
   markDirty();
-  setStatus(`${typeLabels[type]}已${modalContext.isNew ? "添加" : "更新"}，记得保存。`, "neutral");
+  setStatus(
+    `${typeLabels[type]}已${modalContext.isNew ? "添加" : "更新"}，记得保存。`,
+    "neutral",
+  );
   closeEditor();
 }
 
 function handleDelete(type, index) {
   if (!Array.isArray(state[type])) return;
-  const confirmed = window.confirm(`确定要删除该${typeLabels[type]}吗？`);
-  if (!confirmed) return;
   state[type].splice(index, 1);
   render();
   markDirty();
@@ -1132,7 +771,6 @@ function buildSettingsPayload(settings) {
     siteLogo: (settings.siteLogo || "").trim(),
     greeting: (settings.greeting || "").trim(),
     footer: normaliseFooterValue(settings.footer),
-    weather: buildWeatherPayload(settings.weather),
   };
 }
 
@@ -1172,7 +810,10 @@ async function loadData(showStatus = true) {
     }
 
     const payload = await response.json();
-    const data = payload && typeof payload === "object" && "data" in payload ? payload.data : payload;
+    const data =
+      payload && typeof payload === "object" && "data" in payload
+        ? payload.data
+        : payload;
 
     updateStateFromResponse(data);
     hideAuthOverlay();
@@ -1197,30 +838,6 @@ async function saveChanges() {
 
   saveButton.disabled = true;
   setStatus("正在保存修改...", "neutral");
-
-  state.settings.weather = collectWeatherSettingsFromInputs(state.settings.weather);
-  const weatherValidation = validateWeatherSettings(state.settings.weather);
-  if (!weatherValidation.valid) {
-    setStatus(weatherValidation.message, "error");
-    saveButton.disabled = false;
-    if (weatherValidation.focus && typeof weatherValidation.focus.focus === "function") {
-      weatherValidation.focus.focus();
-    }
-    return;
-  }
-
-  state.settings.weather = {
-    ...state.settings.weather,
-    city: weatherValidation.value.city,
-    apiKey: weatherValidation.value.apiKey,
-    query: weatherValidation.value.query,
-    apiHost: weatherValidation.value.apiHost,
-  };
-
-  if (siteWeatherCityInput) {
-    siteWeatherCityInput.value = state.settings.weather.city;
-  }
-  updateWeatherSummary(state.settings.weather);
 
   const payloadSettings = buildSettingsPayload(state.settings);
   if (!payloadSettings.siteName) {
@@ -1267,7 +884,10 @@ async function saveChanges() {
     }
 
     const result = await response.json();
-    const data = result && typeof result === "object" && "data" in result ? result.data : result;
+    const data =
+      result && typeof result === "object" && "data" in result
+        ? result.data
+        : result;
 
     // The server response is used to update lists with server-generated IDs.
     // Settings are not updated from the response, as the local state is the source of truth
@@ -1444,7 +1064,9 @@ async function handleLoginSubmit(event) {
   }
 
   setLoginError("");
-  const submitButton = loginForm ? loginForm.querySelector('button[type="submit"]') : null;
+  const submitButton = loginForm
+    ? loginForm.querySelector('button[type="submit"]')
+    : null;
   if (submitButton) submitButton.disabled = true;
   loginPasswordInput.disabled = true;
 
@@ -1513,7 +1135,9 @@ async function handlePasswordSubmit(event) {
   setStatus("正在更新密码...", "neutral");
 
   const submitButton = passwordForm.querySelector('button[type="submit"]');
-  const passwordInputs = Array.from(passwordForm.querySelectorAll('input[type="password"]'));
+  const passwordInputs = Array.from(
+    passwordForm.querySelectorAll('input[type="password"]'),
+  );
   passwordInputs.forEach((input) => {
     input.disabled = true;
   });
@@ -1525,7 +1149,10 @@ async function handlePasswordSubmit(event) {
     const response = await fetch(PASSWORD_ENDPOINT, {
       method: "POST",
       headers: buildAuthHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ currentPassword: trimmedCurrent, newPassword: newValue }),
+      body: JSON.stringify({
+        currentPassword: trimmedCurrent,
+        newPassword: newValue,
+      }),
     });
 
     if (response.status === 401) {
@@ -1551,7 +1178,8 @@ async function handlePasswordSubmit(event) {
     focusCurrentInput = true;
   } catch (error) {
     console.error("更新密码失败", error);
-    const message = error && error.message ? error.message : "密码更新失败，请稍后再试。";
+    const message =
+      error && error.message ? error.message : "密码更新失败，请稍后再试。";
     setPasswordMessage(message, "error");
     setStatus(message, "error");
   } finally {
@@ -1583,9 +1211,12 @@ async function handleFetchLogo() {
   setModalError("");
 
   try {
-    const response = await fetch(`/api/fetch-logo?targetUrl=${encodeURIComponent(targetUrl)}`, {
-      headers: buildAuthHeaders(),
-    });
+    const response = await fetch(
+      `/api/fetch-logo?targetUrl=${encodeURIComponent(targetUrl)}`,
+      {
+        headers: buildAuthHeaders(),
+      },
+    );
 
     if (response.status === 401) {
       handleUnauthorized("登录已过期，请重新登录。");
@@ -1663,16 +1294,6 @@ function bindEvents() {
     });
   }
 
-  if (siteWeatherCityInput) {
-    siteWeatherCityInput.addEventListener("input", handleWeatherInputChange);
-  }
-  if (siteWeatherApiKeyInput) {
-    siteWeatherApiKeyInput.addEventListener("input", handleWeatherInputChange);
-  }
-  if (weatherApiTestButton) {
-    weatherApiTestButton.addEventListener("click", handleWeatherApiTest);
-  }
-
   if (modalForm) {
     modalForm.addEventListener("submit", applyModalChanges);
   }
@@ -1704,7 +1325,9 @@ function bindEvents() {
 
   if (passwordForm) {
     passwordForm.addEventListener("submit", handlePasswordSubmit);
-    const passwordInputs = passwordForm.querySelectorAll('input[type="password"]');
+    const passwordInputs = passwordForm.querySelectorAll(
+      'input[type="password"]',
+    );
     passwordInputs.forEach((input) => {
       input.addEventListener("input", () => {
         setPasswordMessage("");
@@ -1737,7 +1360,9 @@ function scrollToSection(targetId) {
   const targetElement = document.getElementById(targetId);
   if (!targetElement) return;
 
-  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const prefersReducedMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  )?.matches;
   if (prefersReducedMotion) {
     targetElement.scrollIntoView();
     return;
@@ -1746,7 +1371,9 @@ function scrollToSection(targetId) {
 }
 
 function scrollToTop() {
-  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const prefersReducedMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  )?.matches;
   if (prefersReducedMotion) {
     window.scrollTo(0, 0);
     return;
@@ -1773,7 +1400,9 @@ async function initialise() {
       scrollToTop();
     });
     handleBackToTopVisibility();
-    window.addEventListener("scroll", handleBackToTopVisibility, { passive: true });
+    window.addEventListener("scroll", handleBackToTopVisibility, {
+      passive: true,
+    });
   }
   bindEvents();
   applySettingsToInputs(state.settings);

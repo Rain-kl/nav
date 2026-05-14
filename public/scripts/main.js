@@ -5,7 +5,6 @@ const siteNameElement = document.getElementById("site-name");
 const timeElement = document.getElementById("current-time");
 const dateElement = document.getElementById("current-date");
 const greetingElement = document.getElementById("greeting-text");
-const weatherElement = document.getElementById("weather-info");
 const appsGrid = document.getElementById("apps-grid");
 const bookmarksGrid = document.getElementById("bookmarks-grid");
 const appsEmpty = document.getElementById("apps-empty");
@@ -20,7 +19,9 @@ const searchForm = document.getElementById("global-search-form");
 const searchInput = document.getElementById("global-search");
 const searchTargetSelect = document.getElementById("search-target");
 const searchEngineInput = document.getElementById("search-engine");
-const searchEngineWrapper = document.querySelector('.search-select[data-control="engine"]');
+const searchEngineWrapper = document.querySelector(
+  '.search-select[data-control="engine"]',
+);
 const searchEngineButtons = searchEngineWrapper
   ? Array.from(searchEngineWrapper.querySelectorAll(".search-engine-button"))
   : [];
@@ -52,16 +53,13 @@ function replaceChildrenSafe(target, ...nodes) {
 }
 
 const defaultDocumentTitle = document.title || "SimPage";
-const defaultSiteName = siteNameElement?.textContent?.trim() || defaultDocumentTitle || "SimPage";
-const defaultWeather = {
-  city: "北京",
-};
+const defaultSiteName =
+  siteNameElement?.textContent?.trim() || defaultDocumentTitle || "SimPage";
 const DEFAULT_SITE_SETTINGS = {
   siteName: defaultSiteName,
   siteLogo: "",
   greeting: "",
   footer: "",
-  weather: { ...defaultWeather },
 };
 
 const defaultFaviconHref = faviconLink?.getAttribute("href") || "data:,";
@@ -92,16 +90,6 @@ const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
 
 const visitorCountFormatter = new Intl.NumberFormat("zh-CN");
 
-const runtimeConfig = {
-  weather: {
-    defaultCity: defaultWeather.city,
-  },
-};
-
-let activeWeather = { city: runtimeConfig.weather.defaultCity };
-let weatherSource = "default";
-let weatherRequestToken = 0;
-
 const appsEmptyDefault = appsEmpty ? appsEmpty.textContent : "";
 const bookmarksEmptyDefault = bookmarksEmpty ? bookmarksEmpty.textContent : "";
 
@@ -114,7 +102,8 @@ let currentSearchTarget = "web";
 let activeCollection = "apps";
 
 const searchEngineBuilders = {
-  google: (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+  google: (query) =>
+    `https://www.google.com/search?q=${encodeURIComponent(query)}`,
   baidu: (query) => `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`,
   bing: (query) => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
 };
@@ -129,7 +118,10 @@ function normaliseFooterValue(value) {
 
 function setSearchEngine(engine) {
   if (!searchEngineInput) return;
-  const resolved = Object.prototype.hasOwnProperty.call(searchEngineBuilders, engine)
+  const resolved = Object.prototype.hasOwnProperty.call(
+    searchEngineBuilders,
+    engine,
+  )
     ? engine
     : "google";
   searchEngineInput.value = resolved;
@@ -146,18 +138,21 @@ function moveSearchEngineSelection(offset) {
   if (!searchEngineButtons.length || searchEngineInput?.disabled) {
     return;
   }
-  const enabledButtons = searchEngineButtons.filter((button) => !button.disabled);
+  const enabledButtons = searchEngineButtons.filter(
+    (button) => !button.disabled,
+  );
   if (!enabledButtons.length) {
     return;
   }
   const currentValue = searchEngineInput?.value || "google";
   let currentIndex = enabledButtons.findIndex(
-    (button) => button.dataset.engineOption === currentValue
+    (button) => button.dataset.engineOption === currentValue,
   );
   if (currentIndex < 0) {
     currentIndex = 0;
   }
-  const nextIndex = (currentIndex + offset + enabledButtons.length) % enabledButtons.length;
+  const nextIndex =
+    (currentIndex + offset + enabledButtons.length) % enabledButtons.length;
   const nextButton = enabledButtons[nextIndex];
   if (!nextButton) {
     return;
@@ -219,11 +214,13 @@ async function loadData() {
       throw new Error("数据拉取失败");
     }
     const payload = await response.json();
-    const data = payload && typeof payload === "object" && "data" in payload ? payload.data : payload;
+    const data =
+      payload && typeof payload === "object" && "data" in payload
+        ? payload.data
+        : payload;
 
     applySiteSettings(data?.settings);
     updateVisitorCount(data?.visitorCount);
-    applyRuntimeConfig(data?.config);
 
     originalData.apps = prepareCollection(data?.apps, "apps");
     originalData.bookmarks = prepareCollection(data?.bookmarks, "bookmarks");
@@ -253,10 +250,7 @@ function prepareCollection(collection, type) {
 }
 
 function prepareSiteSettings(settings) {
-  const prepared = {
-    ...DEFAULT_SITE_SETTINGS,
-    weather: { ...DEFAULT_SITE_SETTINGS.weather },
-  };
+  const prepared = { ...DEFAULT_SITE_SETTINGS };
   if (!settings || typeof settings !== "object") {
     return prepared;
   }
@@ -273,16 +267,6 @@ function prepareSiteSettings(settings) {
     prepared.footer = normaliseFooterValue(settings.footer);
   }
 
-  const weather = normaliseWeatherSetting(settings.weather);
-  if (weather) {
-    prepared.weather = weather;
-  } else if (settings.weatherLocation) {
-    const legacyWeather = normaliseWeatherSetting(settings.weatherLocation);
-    if (legacyWeather) {
-      prepared.weather = legacyWeather;
-    }
-  }
-
   return prepared;
 }
 
@@ -297,7 +281,6 @@ function applySiteSettings(settings) {
   updateFavicon(prepared.siteLogo, prepared.siteName);
   updateGreetingDisplay();
   updateFooter(prepared.footer);
-  setActiveWeather(prepared.weather, { source: "settings" });
 }
 
 function updateDocumentTitle(siteName) {
@@ -384,9 +367,12 @@ function updateVisitorCount(rawValue) {
   if (!footerElement || !footerMetaElement || !visitorCountElement) return;
   const numericValue = Number(rawValue);
   visitorCountValue =
-    Number.isFinite(numericValue) && numericValue >= 0 ? Math.floor(numericValue) : 0;
+    Number.isFinite(numericValue) && numericValue >= 0
+      ? Math.floor(numericValue)
+      : 0;
   visitorCountKnown = true;
-  visitorCountElement.textContent = visitorCountFormatter.format(visitorCountValue);
+  visitorCountElement.textContent =
+    visitorCountFormatter.format(visitorCountValue);
   footerMetaElement.hidden = false;
   refreshFooterVisibility();
 }
@@ -480,7 +466,12 @@ function renderApps(items, options = {}) {
   });
 }
 
-function renderTileGrid(container, emptyHint, items, { emptyMessage, defaultMessage } = {}) {
+function renderTileGrid(
+  container,
+  emptyHint,
+  items,
+  { emptyMessage, defaultMessage } = {},
+) {
   if (!container || !emptyHint) return;
 
   if (!Array.isArray(items) || !items.length) {
@@ -554,7 +545,8 @@ function groupBookmarksByCategory(items) {
   const map = new Map();
 
   items.forEach((item) => {
-    const rawLabel = typeof item.category === "string" ? item.category.trim() : "";
+    const rawLabel =
+      typeof item.category === "string" ? item.category.trim() : "";
     const key = rawLabel.toLowerCase() || "__uncategorised__";
     let group = map.get(key);
 
@@ -587,7 +579,11 @@ function createTile(item) {
   iconWrapper.className = "tile-icon";
   const iconContent = String(item.icon || "").trim();
 
-  if (iconContent.startsWith("http://") || iconContent.startsWith("https://") || iconContent.startsWith("data:")) {
+  if (
+    iconContent.startsWith("http://") ||
+    iconContent.startsWith("https://") ||
+    iconContent.startsWith("data:")
+  ) {
     const img = document.createElement("img");
     img.src = iconContent;
     img.alt = `${item.name || ""} 图标`;
@@ -604,7 +600,8 @@ function createTile(item) {
 
   const description = document.createElement("p");
   description.className = "tile-description";
-  const descriptionText = typeof item.description === "string" ? item.description.trim() : "";
+  const descriptionText =
+    typeof item.description === "string" ? item.description.trim() : "";
   if (descriptionText) {
     description.textContent = descriptionText;
   } else {
@@ -647,7 +644,8 @@ function performLocalSearch(target, query) {
 
   showCollection(target);
 
-  const dataset = target === "apps" ? originalData.apps : originalData.bookmarks;
+  const dataset =
+    target === "apps" ? originalData.apps : originalData.bookmarks;
   const keywords = trimmed.toLowerCase();
 
   const matches = dataset.filter((item) => {
@@ -665,7 +663,9 @@ function performLocalSearch(target, query) {
     renderBookmarks(originalData.bookmarks);
   } else {
     renderApps(originalData.apps);
-    renderBookmarks(matches, { emptyMessage: `未找到与「${trimmed}」匹配的书签。` });
+    renderBookmarks(matches, {
+      emptyMessage: `未找到与「${trimmed}」匹配的书签。`,
+    });
   }
 
   updateLocalSearchFeedback(matches.length, target, trimmed);
@@ -711,7 +711,8 @@ function handleSearchSubmit(event) {
 
   if (target === "web") {
     const engineKey = searchEngineInput ? searchEngineInput.value : "google";
-    const builder = searchEngineBuilders[engineKey] || searchEngineBuilders.google;
+    const builder =
+      searchEngineBuilders[engineKey] || searchEngineBuilders.google;
     const url = builder(query);
     window.open(url, "_blank", "noopener");
     hideLocalSearchFeedback();
@@ -768,12 +769,14 @@ function formatYiyanQuote(payload) {
   if (!payload || typeof payload !== "object") {
     return "";
   }
-  const sentence = typeof payload.hitokoto === "string" ? payload.hitokoto.trim() : "";
+  const sentence =
+    typeof payload.hitokoto === "string" ? payload.hitokoto.trim() : "";
   if (!sentence) {
     return "";
   }
   const sources = [];
-  const fromWho = typeof payload.from_who === "string" ? payload.from_who.trim() : "";
+  const fromWho =
+    typeof payload.from_who === "string" ? payload.from_who.trim() : "";
   const origin = typeof payload.from === "string" ? payload.from.trim() : "";
   if (fromWho) {
     sources.push(fromWho);
@@ -789,7 +792,8 @@ function formatYiyanQuote(payload) {
 
 async function loadYiyanQuote() {
   if (!greetingElement) return;
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const controller =
+    typeof AbortController !== "undefined" ? new AbortController() : null;
   let timeoutId = null;
   try {
     if (controller) {
@@ -799,7 +803,10 @@ async function loadYiyanQuote() {
     if (controller) {
       options.signal = controller.signal;
     }
-    const response = await fetch("https://v1.hitokoto.cn/?encode=json", options);
+    const response = await fetch(
+      "https://v1.hitokoto.cn/?encode=json",
+      options,
+    );
     if (!response.ok) {
       throw new Error("一言接口请求失败");
     }
@@ -818,299 +825,10 @@ async function loadYiyanQuote() {
   }
 }
 
-function normaliseWeatherSetting(raw) {
-  if (Array.isArray(raw)) {
-    return raw.map(item => {
-      if (typeof item === "string") {
-        const trimmed = item.trim();
-        return trimmed ? { city: trimmed } : null;
-      }
-      if (!item || typeof item !== "object") {
-        return null;
-      }
-      if (typeof item.city === "string" && item.city.trim()) {
-        return { city: item.city.trim() };
-      }
-      if (typeof item.label === "string" && item.label.trim()) {
-        return { city: item.label.trim() };
-      }
-      if (typeof item.name === "string" && item.name.trim()) {
-        return { city: item.name.trim() };
-      }
-      if (typeof item.id === "string" && item.id.trim()) {
-        return { city: item.id.trim() };
-      }
-      return null;
-    }).filter(item => item !== null);
-  }
-  if (typeof raw === "string") {
-    const trimmed = raw.trim();
-    return trimmed ? { city: trimmed } : null;
-  }
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-  if (typeof raw.city === "string" && raw.city.trim()) {
-    return { city: raw.city.trim() };
-  }
-  if (typeof raw.label === "string" && raw.label.trim()) {
-    return { city: raw.label.trim() };
-  }
-  if (typeof raw.name === "string" && raw.name.trim()) {
-    return { city: raw.name.trim() };
-  }
-  if (typeof raw.id === "string" && raw.id.trim()) {
-    return { city: raw.id.trim() };
-  }
-  return null;
-}
-
-function getDefaultWeather() {
-  const cityCandidate =
-    typeof runtimeConfig.weather?.defaultCity === "string"
-      ? runtimeConfig.weather.defaultCity.trim()
-      : "";
-  const city = cityCandidate || defaultWeather.city;
-  runtimeConfig.weather.defaultCity = city;
-  return { city };
-}
-
-function applyRuntimeConfig(config) {
-  if (!config || typeof config !== "object") {
-    return;
-  }
-  const city =
-    typeof config.weather?.defaultCity === "string" ? config.weather.defaultCity.trim() : "";
-  if (city) {
-    runtimeConfig.weather.defaultCity = city;
-    if (weatherSource !== "settings") {
-      setActiveWeather({ city }, { source: "default" });
-    }
-  }
-}
-
-function weathersAreEqual(a, b) {
-  if (!a || !b) {
-    return false;
-  }
-  return (a.city || "") === (b.city || "");
-}
-
-function updateActiveWeather(weather) {
-  if (!weather) {
-    return;
-  }
-  if (weathersAreEqual(activeWeather, weather)) {
-    return;
-  }
-  activeWeather = { city: weather.city };
-  refreshWeatherDisplay();
-}
-
-function setActiveWeather(rawWeather, { source = "settings" } = {}) {
-  let weather = normaliseWeatherSetting(rawWeather);
-  if (!weather || (Array.isArray(weather) && weather.length === 0)) {
-    if (source === "settings") {
-      weatherSource = "default";
-      updateActiveWeather(getDefaultWeather());
-    }
-    return;
-  }
-  if (source === "settings") {
-    weatherSource = "settings";
-    if (Array.isArray(weather)) {
-      // Use the first city in the array
-      weather = weather[0];
-    }
-    updateActiveWeather(weather);
-    return;
-  }
-  if (weatherSource !== "settings") {
-    weatherSource = "default";
-    if (Array.isArray(weather)) {
-      // Use the first city in the array
-      weather = weather[0];
-    }
-    updateActiveWeather(weather);
-  }
-}
-
-function refreshWeatherDisplay() {
-  if (!weatherElement) return;
-  const weather = activeWeather && activeWeather.city ? activeWeather : getDefaultWeather();
-  updateWeather(weather);
-}
-
-function formatWeatherErrorMessage(rawMessage) {
-  const message = typeof rawMessage === "string" ? rawMessage.trim() : "";
-  if (!message) {
-    return "Weather information is unavailable.";
-  }
-  const mapQWeatherCode = (code) => {
-    switch (code) {
-      case "401":
-      case "403":
-        return "Invalid API Key or API Host.";
-      case "402":
-        return "API quota exhausted. Try again later.";
-      case "429":
-        return "Too many requests. Please wait and retry.";
-      case "204":
-        return "City not found. Check the name in admin.";
-      default:
-        return null;
-    }
-  };
-  if (message.includes("Missing QWeather API Key")) {
-    return "Weather API key is missing. Configure it in admin.";
-  }
-  if (message.includes("City name is required") || message.includes("Failed to resolve city location")) {
-    return "City not found. Check the name in admin.";
-  }
-  const geocodeMatch = message.match(/QWeather geocode error: ([^\\.]+)/);
-  if (geocodeMatch) {
-    const hint = mapQWeatherCode(geocodeMatch[1]);
-    if (geocodeMatch[1] === "invalid_response") {
-      return "City lookup failed. API Host may be unreachable.";
-    }
-    return hint || `City lookup failed (code ${geocodeMatch[1]}). Check API Host/Key or city spelling.`;
-  }
-  const nowMatch = message.match(/QWeather now error: ([^\\.]+)/);
-  if (nowMatch) {
-    const hint = mapQWeatherCode(nowMatch[1]);
-    if (nowMatch[1] === "invalid_response") {
-      return "Weather service unavailable. API Host may be unreachable.";
-    }
-    return hint || `Weather service error (code ${nowMatch[1]}). Check API Host/Key or plan.`;
-  }
-  if (message.includes("Weather request timed out") || message.includes("Weather request failed")) {
-    return "Weather service is temporarily unavailable.";
-  }
-  return message;
-}
-
-async function updateWeather(weather, retryCount = 0) {
-  const requestToken = ++weatherRequestToken;
-  const city = typeof weather?.city === "string" ? weather.city.trim() : "";
-  const maxRetries = 2;
-  const retryDelay = 1000;
-
-  try {
-    const response = await fetch("/api/weather");
-
-    let payload;
-    try {
-      payload = await response.json();
-    } catch (_error) {
-      throw new Error("天气服务响应异常");
-    }
-
-      if (!response.ok || (payload && payload.success === false)) {
-        const message =
-          typeof payload?.message === "string" && payload.message.trim()
-            ? payload.message.trim()
-            : "天气数据请求失败";
-        throw new Error(formatWeatherErrorMessage(message));
-      }
-
-    const data =
-      payload && typeof payload === "object" && "data" in payload ? payload.data : payload;
-
-    if (requestToken !== weatherRequestToken) {
-      return;
-    }
-
-    if (Array.isArray(data) && data.length > 0) {
-      // Multiple cities
-      const weatherInfo = data.map(item => {
-        const descriptionRaw = typeof item?.text === "string" ? item.text.trim() : "";
-        const description = descriptionRaw || "天气良好";
-        const temperatureValue = Number(item?.temperature);
-        const temperatureText = Number.isFinite(temperatureValue)
-          ? ` ${Math.round(temperatureValue)}°C`
-          : "";
-        const resolvedCity =
-          typeof item?.city === "string" && item.city.trim()
-            ? item.city.trim()
-            : city || getDefaultWeather().city;
-
-        const locationLabel = resolvedCity ? `${resolvedCity} · ` : "";
-        return `${locationLabel}${description}${temperatureText}`.trim();
-      });
-      startWeatherRotation(weatherInfo);
-    } else if (data && !Array.isArray(data)) {
-      // Single city
-      const descriptionRaw = typeof data?.text === "string" ? data.text.trim() : "";
-      const description = descriptionRaw || "天气良好";
-      const temperatureValue = Number(data?.temperature);
-      const temperatureText = Number.isFinite(temperatureValue)
-        ? ` ${Math.round(temperatureValue)}°C`
-        : "";
-      const resolvedCity =
-        typeof data?.city === "string" && data.city.trim()
-          ? data.city.trim()
-          : city || getDefaultWeather().city;
-
-      const locationLabel = resolvedCity ? `${resolvedCity} · ` : "";
-      weatherElement.textContent = `${locationLabel}${description}${temperatureText}`.trim();
-    } else {
-      // This case handles empty array or other falsy data values
-      throw new Error("未能获取有效天气数据");
-    }
-  } catch (error) {
-    console.error("天气数据获取失败", error);
-    if (weatherRotationInterval) {
-      clearInterval(weatherRotationInterval);
-      weatherRotationInterval = null;
-    }
-    weatherElement.textContent = "天气信息获取失败";
-    if (requestToken !== weatherRequestToken) {
-      return;
-    }
-
-    if (retryCount < maxRetries) {
-      console.log(`将在 ${retryDelay}ms 后重试（尝试 ${retryCount + 1}/${maxRetries}）...`);
-      setTimeout(() => {
-        if (requestToken === weatherRequestToken) {
-          updateWeather(weather, retryCount + 1);
-        }
-      }, retryDelay);
-      return;
-    }
-
-    const fallbackCity = city || getDefaultWeather().city;
-    const locationLabel = fallbackCity ? `${fallbackCity} · ` : "";
-    const rawMessage = error && typeof error.message === "string" ? error.message.trim() : "";
-      const message = formatWeatherErrorMessage(rawMessage);
-      weatherElement.textContent = `${locationLabel}${message}`.trim();
-    }
-  }
-
-let weatherRotationInterval = null;
-function startWeatherRotation(weatherInfo) {
-  if (weatherRotationInterval) {
-    clearInterval(weatherRotationInterval);
-  }
-
-  if (!weatherInfo || weatherInfo.length === 0) {
-    return;
-  }
-
-  let index = 0;
-  weatherElement.textContent = weatherInfo[index]; // Set initial text immediately
-
-  if (weatherInfo.length > 1) {
-    index = 1;
-    weatherRotationInterval = setInterval(() => {
-      weatherElement.textContent = weatherInfo[index];
-      index = (index + 1) % weatherInfo.length;
-    }, 5000);
-  }
-}
-
-
 function scrollToTop() {
-  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const prefersReducedMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  )?.matches;
   if (prefersReducedMotion) {
     window.scrollTo(0, 0);
     return;
@@ -1150,7 +868,9 @@ async function initialise() {
       scrollToTop();
     });
     handleBackToTopVisibility();
-    window.addEventListener("scroll", handleBackToTopVisibility, { passive: true });
+    window.addEventListener("scroll", handleBackToTopVisibility, {
+      passive: true,
+    });
   }
   if (collectionToggleButtons.length) {
     collectionToggleButtons.forEach((button) => {
@@ -1167,7 +887,8 @@ async function initialise() {
         const offset = event.key === "ArrowRight" ? 1 : -1;
         const currentIndex = collectionToggleButtons.indexOf(button);
         const nextIndex =
-          (currentIndex + offset + collectionToggleButtons.length) % collectionToggleButtons.length;
+          (currentIndex + offset + collectionToggleButtons.length) %
+          collectionToggleButtons.length;
         const nextButton = collectionToggleButtons[nextIndex];
         if (!nextButton) return;
         const view = nextButton.dataset.view;
@@ -1214,10 +935,6 @@ async function initialise() {
   updateSearchControls();
 
   await dataPromise.catch(() => {});
-  if (weatherRequestToken === 0) {
-    refreshWeatherDisplay();
-  }
-
 }
 
 if (document.readyState === "loading") {

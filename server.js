@@ -4,7 +4,12 @@ const path = require("path");
 const http = require("node:http");
 const https = require("node:https");
 const zlib = require("node:zlib");
-const { randomUUID, scryptSync, timingSafeEqual, randomBytes } = require("crypto");
+const {
+  randomUUID,
+  scryptSync,
+  timingSafeEqual,
+  randomBytes,
+} = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, "data");
@@ -47,7 +52,11 @@ const dataCache = {
   lastInfo: { mutated: false, passwordReset: false },
 };
 
-const runtimeDefaultWeatherConfig = Object.freeze(resolveDefaultWeatherConfig());
+const FAVICON_SERVICE_BASE_URL = "https://favicon.im";
+
+const runtimeDefaultWeatherConfig = Object.freeze(
+  resolveDefaultWeatherConfig(),
+);
 
 const runtimeConfig = {
   weather: {
@@ -58,12 +67,14 @@ const runtimeConfig = {
 const WEATHER_API_TIMEOUT_MS = 5000;
 const WEATHER_FETCH_HEADERS = Object.freeze({
   Accept: "application/json",
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 });
 const WEATHER_HTTP_HEADERS = Object.freeze({
   Accept: "application/json",
   "Accept-Encoding": "identity",
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 });
 const GEOLOCATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const GEOLOCATION_MAX_RETRIES = 3;
@@ -73,41 +84,41 @@ const QWEATHER_API_HOST_DEFAULT = "https://api.qweather.com";
 
 const geocodeCache = new Map();
 const QWEATHER_CITY_ALIASES = Object.freeze({
-  "北京": "Beijing",
-  "上海": "Shanghai",
-  "广州": "Guangzhou",
-  "深圳": "Shenzhen",
-  "杭州": "Hangzhou",
-  "南京": "Nanjing",
-  "天津": "Tianjin",
-  "武汉": "Wuhan",
-  "成都": "Chengdu",
-  "重庆": "Chongqing",
-  "西安": "Xian",
-  "苏州": "Suzhou",
-  "青岛": "Qingdao",
-  "厦门": "Xiamen",
-  "大连": "Dalian",
-  "宁波": "Ningbo",
-  "沈阳": "Shenyang",
-  "哈尔滨": "Harbin",
-  "长春": "Changchun",
-  "长沙": "Changsha",
-  "郑州": "Zhengzhou",
-  "济南": "Jinan",
-  "福州": "Fuzhou",
-  "合肥": "Hefei",
-  "昆明": "Kunming",
-  "南宁": "Nanning",
-  "贵阳": "Guiyang",
-  "兰州": "Lanzhou",
-  "太原": "Taiyuan",
-  "石家庄": "Shijiazhuang",
-  "乌鲁木齐": "Urumqi",
-  "拉萨": "Lhasa",
-  "香港": "Hong Kong",
-  "澳门": "Macau",
-  "台北": "Taipei",
+  北京: "Beijing",
+  上海: "Shanghai",
+  广州: "Guangzhou",
+  深圳: "Shenzhen",
+  杭州: "Hangzhou",
+  南京: "Nanjing",
+  天津: "Tianjin",
+  武汉: "Wuhan",
+  成都: "Chengdu",
+  重庆: "Chongqing",
+  西安: "Xian",
+  苏州: "Suzhou",
+  青岛: "Qingdao",
+  厦门: "Xiamen",
+  大连: "Dalian",
+  宁波: "Ningbo",
+  沈阳: "Shenyang",
+  哈尔滨: "Harbin",
+  长春: "Changchun",
+  长沙: "Changsha",
+  郑州: "Zhengzhou",
+  济南: "Jinan",
+  福州: "Fuzhou",
+  合肥: "Hefei",
+  昆明: "Kunming",
+  南宁: "Nanning",
+  贵阳: "Guiyang",
+  兰州: "Lanzhou",
+  太原: "Taiyuan",
+  石家庄: "Shijiazhuang",
+  乌鲁木齐: "Urumqi",
+  拉萨: "Lhasa",
+  香港: "Hong Kong",
+  澳门: "Macau",
+  台北: "Taipei",
 });
 
 const QWEATHER_CITY_ALIAS_CODES = Object.freeze({
@@ -152,7 +163,9 @@ function normaliseQWeatherCityName(city) {
   if (!city) {
     return "";
   }
-  const cleaned = city.replace(/\s+/g, "").replace(/(市|省|自治区|特别行政区)$/, "");
+  const cleaned = city
+    .replace(/\s+/g, "")
+    .replace(/(市|省|自治区|特别行政区)$/, "");
   const codeKey = Array.from(cleaned)
     .map((char) => char.codePointAt(0).toString(16))
     .join("-");
@@ -187,7 +200,11 @@ function clearDataCache() {
   dataCache.lastInfo = { mutated: false, passwordReset: false };
 }
 
-function setDataCache(fullData, meta, info = { mutated: false, passwordReset: false }) {
+function setDataCache(
+  fullData,
+  meta,
+  info = { mutated: false, passwordReset: false },
+) {
   if (!meta) {
     clearDataCache();
     return;
@@ -214,7 +231,9 @@ async function getCachedFullDataIfFresh() {
   const sameTimestamp = meta.mtimeMs === cachedMeta.mtimeMs;
   const sameSize = meta.size === cachedMeta.size;
   const sameInode =
-    cachedMeta.inode == null || meta.inode == null || meta.inode === cachedMeta.inode;
+    cachedMeta.inode == null ||
+    meta.inode == null ||
+    meta.inode === cachedMeta.inode;
 
   if (sameTimestamp && sameSize && sameInode) {
     return dataCache.fullData;
@@ -229,7 +248,8 @@ app.use(express.json({ limit: "1mb" }));
 
 app.post("/api/login", async (req, res, next) => {
   try {
-    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    const password =
+      typeof req.body?.password === "string" ? req.body.password : "";
     if (!password) {
       res.status(400).json({ success: false, message: "请输入密码。" });
       return;
@@ -255,7 +275,8 @@ app.post("/api/login", async (req, res, next) => {
     const hashedBuffer = Buffer.from(hashed, "hex");
 
     const isMatch =
-      storedBuffer.length === hashedBuffer.length && timingSafeEqual(storedBuffer, hashedBuffer);
+      storedBuffer.length === hashedBuffer.length &&
+      timingSafeEqual(storedBuffer, hashedBuffer);
 
     if (!isMatch) {
       res.status(401).json({ success: false, message: "密码错误。" });
@@ -279,68 +300,6 @@ app.get("/api/data", async (_req, res, next) => {
   }
 });
 
-app.get("/api/weather", async (_req, res, next) => {
-  try {
-    const config = await resolveWeatherRequestConfig();
-    const apiKey = typeof config.apiKey === "string" ? config.apiKey.trim() : "";
-    const locations = Array.isArray(config.locations) ? config.locations : [];
-    if (locations.length > 0) {
-      const weatherPromises = locations.map((location) =>
-        fetchQWeatherNowByLocation(location, apiKey, config.apiHost)
-          .then((weather) => ({
-            ...weather,
-            city: location.name || location.city || "",
-            success: true,
-          }))
-          .catch((error) => {
-            const label = location.name || location.city || "Unknown";
-            console.error(`Weather fetch failed for ${label}:`, error);
-            return { city: label, success: false, message: error.message };
-          })
-      );
-
-      const results = await Promise.all(weatherPromises);
-      const successfulWeatherData = results.filter((result) => result.success);
-
-      res.json({ success: true, data: successfulWeatherData });
-      return;
-    }
-    if (!config.city) {
-      res.status(503).json({ success: false, message: "尚未配置天气城市，请联系管理员。" });
-      return;
-    }
-
-    let cities = config.city;
-    if (!Array.isArray(cities)) {
-      cities = [cities];
-    }
-    const queryList = alignWeatherQueries(cities, config.query);
-    const weatherPromises = cities.map((city, index) =>
-      fetchQWeatherNowByCity(city, apiKey, queryList[index], config.apiHost)
-        .then(weather => ({ ...weather, city, success: true }))
-        .catch(error => {
-          console.error(`???? ${city} ????????`, error);
-          return { city, success: false, message: error.message };
-        })
-    );
-
-    const results = await Promise.all(weatherPromises);
-    const successfulWeatherData = results.filter(r => r.success);
-
-    res.json({ success: true, data: successfulWeatherData });
-  } catch (error) {
-    if (error && error.expose) {
-      const statusCode =
-        typeof error.statusCode === "number" && error.statusCode >= 400 && error.statusCode < 600
-          ? error.statusCode
-          : 502;
-      res.status(statusCode).json({ success: false, message: error.message });
-      return;
-    }
-    next(error);
-  }
-});
-
 app.get("/api/admin/data", requireAuth, async (_req, res, next) => {
   try {
     const data = await readAdminData();
@@ -354,21 +313,21 @@ app.get("/api/fetch-logo", requireAuth, (req, res) => {
   try {
     const targetUrl = req.query.targetUrl;
     if (!targetUrl || typeof targetUrl !== "string" || !targetUrl.trim()) {
-      return res.status(400).json({ success: false, message: "缺少有效的 targetUrl 参数" });
+      return res
+        .status(400)
+        .json({ success: false, message: "缺少有效的 targetUrl 参数" });
     }
 
-    // 移除协议 (http, https)
-    let domain = targetUrl.trim().replace(/^(https?:\/\/)?/, "");
-    // 移除第一个斜杠后的所有内容 (路径, 查询参数, 哈希)
-    domain = domain.split("/")[0];
+    const domain = extractDomainForFavicon(targetUrl);
 
     if (!domain) {
-      return res.status(400).json({ success: false, message: "无法从链接中提取域名。" });
+      return res
+        .status(400)
+        .json({ success: false, message: "无法从链接中提取域名。" });
     }
 
-    const logoUrl = `https://icon.ooo/${domain}`;
+    const logoUrl = buildFaviconServiceUrl(domain);
     res.json({ success: true, logoUrl: logoUrl });
-
   } catch (error) {
     console.error("生成 Logo 链接时发生内部错误:", error);
     res.status(500).json({ success: false, message: "生成 Logo 链接失败" });
@@ -378,7 +337,6 @@ app.get("/api/fetch-logo", requireAuth, (req, res) => {
 app.put("/api/admin/data", requireAuth, handleDataUpdate);
 app.put("/api/data", requireAuth, handleDataUpdate);
 app.post("/api/admin/password", requireAuth, handlePasswordUpdate);
-app.post("/api/admin/weather-test", requireAuth, handleWeatherTest);
 
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
@@ -387,7 +345,7 @@ app.get("/admin", (_req, res) => {
 app.use(
   express.static(path.join(__dirname, "public"), {
     extensions: ["html"],
-  })
+  }),
 );
 
 app.use((req, res) => {
@@ -430,7 +388,9 @@ async function ensureDataFile() {
   } else {
     const { passwordReset } = await normaliseExistingFile();
     if (passwordReset) {
-      announceDefaultPassword("检测到缺失的后台密码，已重置为默认密码：admin123");
+      announceDefaultPassword(
+        "检测到缺失的后台密码，已重置为默认密码：admin123",
+      );
     }
   }
 }
@@ -476,16 +436,7 @@ async function readData() {
 
 async function readAdminData() {
   const fullData = await readFullData();
-  const data = sanitiseData(fullData);
-  const weather = normaliseWeatherSettingsValue(fullData.settings?.weather);
-  const cityString = Array.isArray(weather.city) ? weather.city.join(" ") : weather.city;
-  data.settings.weather = {
-    city: cityString,
-    apiKey: weather.apiKey || "",
-    query: weather.query || [],
-    apiHost: weather.apiHost || "",
-  };
-  return data;
+  return sanitiseData(fullData);
 }
 
 async function handleVisitorAndReadData() {
@@ -523,7 +474,8 @@ async function persistVisitorCountIncrement() {
     const fullData = await readFullData();
 
     const currentCount =
-      typeof fullData.stats?.visitorCount === "number" && Number.isFinite(fullData.stats.visitorCount)
+      typeof fullData.stats?.visitorCount === "number" &&
+      Number.isFinite(fullData.stats.visitorCount)
         ? Math.max(0, Math.floor(fullData.stats.visitorCount))
         : DEFAULT_STATS.visitorCount;
 
@@ -557,8 +509,13 @@ async function readFullData() {
       } catch (error) {
         console.error("数据文件损坏，将重置为默认数据", error);
         const defaultData = createDefaultData();
-        await writeFullData(defaultData, { mutated: true, passwordReset: true });
-        announceDefaultPassword("数据文件已重置为默认，后台密码已重置为：admin123");
+        await writeFullData(defaultData, {
+          mutated: true,
+          passwordReset: true,
+        });
+        announceDefaultPassword(
+          "数据文件已重置为默认，后台密码已重置为：admin123",
+        );
         return defaultData;
       }
 
@@ -577,7 +534,9 @@ async function readFullData() {
       }
 
       if (passwordReset) {
-        announceDefaultPassword("后台密码缺失或无效，已重置为默认密码：admin123");
+        announceDefaultPassword(
+          "后台密码缺失或无效，已重置为默认密码：admin123",
+        );
       }
 
       return fullData;
@@ -591,7 +550,10 @@ async function readFullData() {
   }
 }
 
-async function writeFullData(fullData, cacheInfo = { mutated: false, passwordReset: false }) {
+async function writeFullData(
+  fullData,
+  cacheInfo = { mutated: false, passwordReset: false },
+) {
   const payload = {
     settings: fullData.settings,
     apps: fullData.apps,
@@ -650,7 +612,14 @@ function normaliseAdminFromFile(rawAdmin) {
     typeof rawAdmin.passwordSalt === "string" &&
     rawAdmin.passwordSalt
   ) {
-    return { value: { passwordHash: rawAdmin.passwordHash, passwordSalt: rawAdmin.passwordSalt }, mutated: false, passwordReset: false };
+    return {
+      value: {
+        passwordHash: rawAdmin.passwordHash,
+        passwordSalt: rawAdmin.passwordSalt,
+      },
+      mutated: false,
+      passwordReset: false,
+    };
   }
 
   const credentials = createDefaultAdminCredentials();
@@ -669,7 +638,8 @@ function normaliseStatsFromFile(rawStats) {
   const normalisedVisitorCount = Math.floor(numericVisitorCount);
   const value = { visitorCount: normalisedVisitorCount };
   const mutated =
-    typeof rawStats.visitorCount !== "number" || normalisedVisitorCount !== numericVisitorCount;
+    typeof rawStats.visitorCount !== "number" ||
+    normalisedVisitorCount !== numericVisitorCount;
   return { value, mutated };
 }
 
@@ -694,7 +664,6 @@ function createDefaultWeatherSettings() {
 function createDefaultSettings() {
   return {
     ...BASE_DEFAULT_SETTINGS,
-    weather: createDefaultWeatherSettings(),
   };
 }
 
@@ -742,7 +711,10 @@ function normaliseWeatherSettingsFromFile(rawSettings) {
     if (rawSettings.weather && typeof rawSettings.weather === "object") {
       source = rawSettings.weather;
     }
-    if (rawSettings.weatherLocation && typeof rawSettings.weatherLocation === "object") {
+    if (
+      rawSettings.weatherLocation &&
+      typeof rawSettings.weatherLocation === "object"
+    ) {
       if (!source) {
         source = rawSettings.weatherLocation;
       }
@@ -752,7 +724,9 @@ function normaliseWeatherSettingsFromFile(rawSettings) {
 
   if (source) {
     if (Array.isArray(source.city)) {
-      const cleaned = source.city.map((city) => String(city).trim()).filter(Boolean);
+      const cleaned = source.city
+        .map((city) => String(city).trim())
+        .filter(Boolean);
       if (cleaned.length > 0) {
         value.city = cleaned;
       } else {
@@ -787,7 +761,9 @@ function normaliseWeatherSettingsFromFile(rawSettings) {
       mutated = true;
     }
 
-    const apiHost = normaliseApiHost(typeof source.apiHost === "string" ? source.apiHost : "");
+    const apiHost = normaliseApiHost(
+      typeof source.apiHost === "string" ? source.apiHost : "",
+    );
     if (apiHost) {
       value.apiHost = apiHost;
     } else if ("apiHost" in source) {
@@ -822,11 +798,17 @@ function normaliseWeatherSettingsValue(input) {
 
   if (input && typeof input === "object") {
     if (typeof input.city === "string" && input.city.trim()) {
-      value.city = input.city.trim().split(" ").filter(city => city);
+      value.city = input.city
+        .trim()
+        .split(" ")
+        .filter((city) => city);
     } else if (Array.isArray(input.city)) {
-      value.city = input.city.map(city => city.trim()).filter(city => city);
+      value.city = input.city.map((city) => city.trim()).filter((city) => city);
     } else if (typeof input.label === "string" && input.label.trim()) {
-      value.city = input.label.trim().split(" ").filter(city => city);
+      value.city = input.label
+        .trim()
+        .split(" ")
+        .filter((city) => city);
     }
   }
 
@@ -873,7 +855,9 @@ function normaliseWeatherQueryInput(rawWeather) {
     return trimmed ? trimmed.split(/\s+/).filter(Boolean) : [];
   }
   if (Array.isArray(rawWeather.query)) {
-    return rawWeather.query.map((value) => String(value || "").trim()).filter(Boolean);
+    return rawWeather.query
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
   }
   return [];
 }
@@ -911,7 +895,9 @@ function normaliseWeatherSettingsInput(rawWeather) {
   const city = cityInfo.value;
   const apiKey = getWeatherApiKey(rawWeather);
   const query = normaliseWeatherQueryInput(rawWeather);
-  const apiHost = normaliseApiHost(typeof rawWeather?.apiHost === "string" ? rawWeather.apiHost : "");
+  const apiHost = normaliseApiHost(
+    typeof rawWeather?.apiHost === "string" ? rawWeather.apiHost : "",
+  );
   if (!city) {
     const error = new Error("天气城市不能为空。");
     error.expose = true;
@@ -919,7 +905,7 @@ function normaliseWeatherSettingsInput(rawWeather) {
   }
 
   return {
-    city: city.split(" ").filter(city => city),
+    city: city.split(" ").filter((city) => city),
     apiKey,
     query,
     apiHost,
@@ -941,8 +927,10 @@ function normaliseWeatherLocationsValue(input) {
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
         return null;
       }
-      const city = typeof location.city === "string" ? location.city.trim() : "";
-      const name = typeof location.name === "string" ? location.name.trim() : "";
+      const city =
+        typeof location.city === "string" ? location.city.trim() : "";
+      const name =
+        typeof location.name === "string" ? location.name.trim() : "";
       const id = typeof location.id === "string" ? location.id.trim() : "";
       if (!city && !name) {
         return null;
@@ -970,10 +958,10 @@ function buildSettingsFromFile(rawSettings) {
     siteLogo: defaults.siteLogo,
     greeting: defaults.greeting,
     footer: defaults.footer,
-    weather: createDefaultWeatherSettings(),
   };
 
-  const siteNameRaw = typeof rawSettings.siteName === "string" ? rawSettings.siteName : "";
+  const siteNameRaw =
+    typeof rawSettings.siteName === "string" ? rawSettings.siteName : "";
   const siteName = siteNameRaw.trim();
   if (!siteName) {
     mutated = true;
@@ -984,30 +972,36 @@ function buildSettingsFromFile(rawSettings) {
     }
   }
 
-  const siteLogoRaw = typeof rawSettings.siteLogo === "string" ? rawSettings.siteLogo : "";
+  const siteLogoRaw =
+    typeof rawSettings.siteLogo === "string" ? rawSettings.siteLogo : "";
   const siteLogo = siteLogoRaw.trim();
   value.siteLogo = siteLogo;
   if (siteLogo !== siteLogoRaw) {
     mutated = true;
   }
 
-  const greetingRaw = typeof rawSettings.greeting === "string" ? rawSettings.greeting : "";
+  const greetingRaw =
+    typeof rawSettings.greeting === "string" ? rawSettings.greeting : "";
   const greeting = greetingRaw.trim();
   value.greeting = greeting;
   if (greeting !== greetingRaw) {
     mutated = true;
   }
 
-  const footerRaw = typeof rawSettings.footer === "string" ? rawSettings.footer : "";
+  const footerRaw =
+    typeof rawSettings.footer === "string" ? rawSettings.footer : "";
   const footer = normaliseFooterValue(footerRaw);
   value.footer = footer;
   if (footer !== footerRaw) {
     mutated = true;
   }
 
-  const weatherInfo = normaliseWeatherSettingsFromFile(rawSettings);
-  value.weather = weatherInfo.value;
-  mutated = mutated || weatherInfo.mutated;
+  if (
+    rawSettings.weather !== undefined ||
+    rawSettings.weatherLocation !== undefined
+  ) {
+    mutated = true;
+  }
 
   return { value, mutated };
 }
@@ -1019,11 +1013,10 @@ function sanitiseData(fullData) {
       ? fullData.settings
       : defaults;
 
-  const weather = normaliseWeatherSettingsValue(sourceSettings.weather);
-
   const settings = {
     siteName:
-      typeof sourceSettings.siteName === "string" && sourceSettings.siteName.trim()
+      typeof sourceSettings.siteName === "string" &&
+      sourceSettings.siteName.trim()
         ? sourceSettings.siteName.trim()
         : defaults.siteName,
     siteLogo:
@@ -1035,32 +1028,34 @@ function sanitiseData(fullData) {
         ? sourceSettings.greeting.trim()
         : defaults.greeting,
     footer: normaliseFooterValue(sourceSettings.footer),
-    weather: {
-      city: weather.city,
-    },
   };
 
   return {
     settings,
-    apps: fullData.apps.map((item) => ({ ...item })),
-    bookmarks: fullData.bookmarks.map((item) => ({ ...item })),
+    apps: sanitiseCollectionItems(fullData.apps),
+    bookmarks: sanitiseCollectionItems(fullData.bookmarks),
     visitorCount:
       typeof fullData.stats?.visitorCount === "number"
         ? fullData.stats.visitorCount
         : DEFAULT_STATS.visitorCount,
-    config: {
-      weather: {
-        defaultCity: runtimeConfig.weather.defaultCity,
-      },
-    },
   };
+}
+
+function sanitiseCollectionItems(items) {
+  return items.map((item) => ({
+    ...item,
+    icon: normaliseIconUrl(item?.icon),
+  }));
 }
 
 async function handleDataUpdate(req, res, next) {
   try {
     const { apps, bookmarks, settings } = req.body || {};
 
-    const normalisedApps = normaliseCollection(apps, { label: "应用", type: "apps" });
+    const normalisedApps = normaliseCollection(apps, {
+      label: "应用",
+      type: "apps",
+    });
     const normalisedBookmarks = normaliseCollection(bookmarks, {
       label: "书签",
       type: "bookmarks",
@@ -1073,11 +1068,6 @@ async function handleDataUpdate(req, res, next) {
       error.expose = true;
       throw error;
     }
-    const weatherLocations = await resolveWeatherLocationsFromSettings(normalisedSettings.weather);
-    normalisedSettings.weather = {
-      ...normalisedSettings.weather,
-      locations: weatherLocations,
-    };
 
     const existing = await readFullData();
     const payload = {
@@ -1099,52 +1089,14 @@ async function handleDataUpdate(req, res, next) {
   }
 }
 
-async function handleWeatherTest(req, res, next) {
-  try {
-    const body = req.body || {};
-    const city = typeof body.city === "string" ? body.city.trim() : "";
-    const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
-    const queryList = normaliseWeatherQueryInput({ query: body.query });
-    const query = queryList[0] || "";
-    const apiHost = normaliseApiHost(typeof body.apiHost === "string" ? body.apiHost : "") || resolveQWeatherApiHost({});
-
-    if (!city) {
-      res.status(400).json({ success: false, message: "City name is required." });
-      return;
-    }
-    if (!apiKey) {
-      res.status(400).json({ success: false, message: "Missing QWeather API Key." });
-      return;
-    }
-
-    const location = await geocodeCity(city, apiKey, query, apiHost);
-    const weather = await fetchQWeatherNowByLocation(location, apiKey, apiHost);
-
-    res.json({
-      success: true,
-      data: {
-        city: location.name || city,
-        ...weather,
-      },
-    });
-  } catch (error) {
-    if (error && error.expose) {
-      const statusCode =
-        typeof error.statusCode === "number" && error.statusCode >= 400 && error.statusCode < 600
-          ? error.statusCode
-          : 502;
-      res.status(statusCode).json({ success: false, message: error.message });
-      return;
-    }
-    next(error);
-  }
-}
-
 async function handlePasswordUpdate(req, res, next) {
   try {
     const currentPassword =
-      typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
-    const newPasswordRaw = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
+      typeof req.body?.currentPassword === "string"
+        ? req.body.currentPassword
+        : "";
+    const newPasswordRaw =
+      typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
 
     if (!currentPassword) {
       res.status(400).json({ success: false, message: "请输入当前密码。" });
@@ -1158,19 +1110,27 @@ async function handlePasswordUpdate(req, res, next) {
     }
 
     if (cleanNewPassword.length < 6) {
-      res.status(400).json({ success: false, message: "新密码长度至少为 6 位。" });
+      res
+        .status(400)
+        .json({ success: false, message: "新密码长度至少为 6 位。" });
       return;
     }
 
     const fullData = await readFullData();
     const admin = fullData.admin;
     if (!admin || !admin.passwordHash || !admin.passwordSalt) {
-      res.status(500).json({ success: false, message: "密码修改功能暂不可用，请稍后再试。" });
+      res.status(500).json({
+        success: false,
+        message: "密码修改功能暂不可用，请稍后再试。",
+      });
       return;
     }
 
     const storedBuffer = Buffer.from(admin.passwordHash, "hex");
-    const currentHashBuffer = Buffer.from(hashPassword(currentPassword, admin.passwordSalt), "hex");
+    const currentHashBuffer = Buffer.from(
+      hashPassword(currentPassword, admin.passwordSalt),
+      "hex",
+    );
 
     const isMatch =
       storedBuffer.length === currentHashBuffer.length &&
@@ -1181,11 +1141,19 @@ async function handlePasswordUpdate(req, res, next) {
       return;
     }
 
-    const newHashWithExistingSalt = hashPassword(cleanNewPassword, admin.passwordSalt);
+    const newHashWithExistingSalt = hashPassword(
+      cleanNewPassword,
+      admin.passwordSalt,
+    );
     const newHashBuffer = Buffer.from(newHashWithExistingSalt, "hex");
 
-    if (storedBuffer.length === newHashBuffer.length && timingSafeEqual(storedBuffer, newHashBuffer)) {
-      res.status(400).json({ success: false, message: "新密码不能与当前密码相同。" });
+    if (
+      storedBuffer.length === newHashBuffer.length &&
+      timingSafeEqual(storedBuffer, newHashBuffer)
+    ) {
+      res
+        .status(400)
+        .json({ success: false, message: "新密码不能与当前密码相同。" });
       return;
     }
 
@@ -1208,41 +1176,25 @@ async function handlePasswordUpdate(req, res, next) {
 }
 
 function normaliseSettingsInput(input) {
-  const siteName = typeof input?.siteName === "string" ? input.siteName.trim() : "";
+  const siteName =
+    typeof input?.siteName === "string" ? input.siteName.trim() : "";
   if (!siteName) {
     const error = new Error("网站名称不能为空。");
     error.expose = true;
     throw error;
   }
 
-  const siteLogo = typeof input?.siteLogo === "string" ? input.siteLogo.trim() : "";
-  const greeting = typeof input?.greeting === "string" ? input.greeting.trim() : "";
+  const siteLogo =
+    typeof input?.siteLogo === "string" ? input.siteLogo.trim() : "";
+  const greeting =
+    typeof input?.greeting === "string" ? input.greeting.trim() : "";
   const footer = normaliseFooterValue(input?.footer);
-
-  let weatherSource = null;
-  if (input && typeof input === "object") {
-    if (input.weather && typeof input.weather === "object") {
-      weatherSource = input.weather;
-    } else if (input.weatherLocation && typeof input.weatherLocation === "object") {
-      weatherSource = convertLegacyWeatherInput(input.weatherLocation);
-    }
-  }
-
-  let weather;
-  try {
-    weather = normaliseWeatherSettingsInput(weatherSource);
-  } catch (error) {
-    console.error("天气设置数据格式不正确", error);
-    error.expose = true;
-    throw error;
-  }
 
   return {
     siteName,
     siteLogo,
     greeting,
     footer,
-    weather,
   };
 }
 
@@ -1273,10 +1225,13 @@ function normaliseItem(input, type) {
 
   const name = String(input.name || "").trim();
   const url = String(input.url || "").trim();
-  const description = typeof input.description === "string" ? input.description.trim() : "";
+  const description =
+    typeof input.description === "string" ? input.description.trim() : "";
   const icon = typeof input.icon === "string" ? input.icon.trim() : "";
   const category =
-    type === "bookmarks" && typeof input.category === "string" ? input.category.trim() : "";
+    type === "bookmarks" && typeof input.category === "string"
+      ? input.category.trim()
+      : "";
 
   if (!name) {
     const error = new Error("名称不能为空。");
@@ -1291,11 +1246,14 @@ function normaliseItem(input, type) {
   }
 
   const payload = {
-    id: typeof input.id === "string" && input.id.trim() ? input.id.trim() : randomUUID(),
+    id:
+      typeof input.id === "string" && input.id.trim()
+        ? input.id.trim()
+        : randomUUID(),
     name,
     url: ensureUrlProtocol(url),
     description,
-    icon,
+    icon: normaliseIconUrl(icon),
   };
 
   if (type === "bookmarks") {
@@ -1312,9 +1270,59 @@ function ensureUrlProtocol(url) {
   return `https://${url}`;
 }
 
+function extractDomainForFavicon(target) {
+  if (typeof target !== "string") {
+    return "";
+  }
+
+  const trimmed = target.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const candidate = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(candidate);
+    return parsed.hostname.trim().toLowerCase();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function buildFaviconServiceUrl(target) {
+  const domain = extractDomainForFavicon(target);
+  if (!domain) {
+    return "";
+  }
+  return `${FAVICON_SERVICE_BASE_URL}/${domain}`;
+}
+
+function normaliseIconUrl(value) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^https?:\/\/icon\.ooo\//i.test(trimmed)) {
+    return buildFaviconServiceUrl(trimmed) || trimmed;
+  }
+
+  return trimmed;
+}
+
 function resolveDefaultWeatherConfig() {
   const resolved = { ...DEFAULT_WEATHER_CONFIG };
-  const candidates = [process.env.DEFAULT_WEATHER_CITY, process.env.DEFAULT_WEATHER_LABEL];
+  const candidates = [
+    process.env.DEFAULT_WEATHER_CITY,
+    process.env.DEFAULT_WEATHER_LABEL,
+  ];
   for (const candidate of candidates) {
     if (typeof candidate === "string") {
       const trimmed = candidate.trim();
@@ -1332,7 +1340,10 @@ function resolveApiKeyFromWeather(weather) {
   if (fromSettings) {
     return fromSettings;
   }
-  const fromEnv = typeof process.env.QWEATHER_API_KEY === "string" ? process.env.QWEATHER_API_KEY.trim() : "";
+  const fromEnv =
+    typeof process.env.QWEATHER_API_KEY === "string"
+      ? process.env.QWEATHER_API_KEY.trim()
+      : "";
   return fromEnv;
 }
 
@@ -1351,11 +1362,17 @@ function normaliseApiHost(rawHost) {
 }
 
 function resolveQWeatherApiHost(weather) {
-  const fromSettings = normaliseApiHost(typeof weather?.apiHost === "string" ? weather.apiHost : "");
+  const fromSettings = normaliseApiHost(
+    typeof weather?.apiHost === "string" ? weather.apiHost : "",
+  );
   if (fromSettings) {
     return fromSettings;
   }
-  const fromEnv = normaliseApiHost(typeof process.env.QWEATHER_API_HOST === "string" ? process.env.QWEATHER_API_HOST : "");
+  const fromEnv = normaliseApiHost(
+    typeof process.env.QWEATHER_API_HOST === "string"
+      ? process.env.QWEATHER_API_HOST
+      : "",
+  );
   return fromEnv || QWEATHER_API_HOST_DEFAULT;
 }
 
@@ -1371,7 +1388,10 @@ async function resolveWeatherLocationsFromSettings(weather) {
   const trimmedCities = cities
     .map((city) => (typeof city === "string" ? city.trim() : ""))
     .filter(Boolean);
-  const queryList = alignWeatherQueries(trimmedCities, normaliseWeatherQueryInput(weather));
+  const queryList = alignWeatherQueries(
+    trimmedCities,
+    normaliseWeatherQueryInput(weather),
+  );
 
   if (trimmedCities.length === 0) {
     return [];
@@ -1385,7 +1405,12 @@ async function resolveWeatherLocationsFromSettings(weather) {
 
   const locations = await Promise.all(
     trimmedCities.map(async (city, index) => {
-      const location = await geocodeCity(city, apiKey, queryList[index], apiHost);
+      const location = await geocodeCity(
+        city,
+        apiKey,
+        queryList[index],
+        apiHost,
+      );
       return {
         city,
         name: location.name || city,
@@ -1393,7 +1418,7 @@ async function resolveWeatherLocationsFromSettings(weather) {
         longitude: location.longitude,
         id: location.id || "",
       };
-    })
+    }),
   );
 
   return locations;
@@ -1439,7 +1464,8 @@ async function geocodeCity(cityName, apiKey, queryOverride = "", apiHost = "") {
   if (!apiKey) {
     throw createWeatherError("Missing QWeather API Key.", 400);
   }
-  const rawQuery = typeof queryOverride === "string" ? queryOverride.trim() : "";
+  const rawQuery =
+    typeof queryOverride === "string" ? queryOverride.trim() : "";
   const querySource = rawQuery || city;
   const queryCity = normaliseQWeatherCityName(querySource) || querySource;
 
@@ -1452,8 +1478,9 @@ async function geocodeCity(cityName, apiKey, queryOverride = "", apiHost = "") {
   for (let attempt = 0; attempt < GEOLOCATION_MAX_RETRIES; attempt++) {
     try {
       if (attempt > 0) {
-        const delay = GEOLOCATION_RETRY_DELAY_BASE_MS * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay =
+          GEOLOCATION_RETRY_DELAY_BASE_MS * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
       const url = buildQWeatherEndpoint(apiHost, "/geo/v2/city/lookup");
@@ -1463,11 +1490,22 @@ async function geocodeCity(cityName, apiKey, queryOverride = "", apiHost = "") {
 
       const payload = await requestWeatherPayload(url, WEATHER_API_TIMEOUT_MS);
       if (!payload) {
-        throw createWeatherError(`QWeather geocode error: invalid_response (city=${queryCity}).`, 502);
+        throw createWeatherError(
+          `QWeather geocode error: invalid_response (city=${queryCity}).`,
+          502,
+        );
       }
-      if (payload.code !== "200" || !Array.isArray(payload.location) || payload.location.length === 0) {
-        const code = typeof payload.code === "string" ? payload.code : "invalid_response";
-        throw createWeatherError(`QWeather geocode error: ${code} (city=${queryCity}).`, 502);
+      if (
+        payload.code !== "200" ||
+        !Array.isArray(payload.location) ||
+        payload.location.length === 0
+      ) {
+        const code =
+          typeof payload.code === "string" ? payload.code : "invalid_response";
+        throw createWeatherError(
+          `QWeather geocode error: ${code} (city=${queryCity}).`,
+          502,
+        );
       }
 
       const result = payload.location[0];
@@ -1498,7 +1536,10 @@ async function geocodeCity(cityName, apiKey, queryOverride = "", apiHost = "") {
         throw error;
       }
       if (attempt < GEOLOCATION_MAX_RETRIES - 1) {
-        console.warn(`Geocode failed (attempt ${attempt + 1}/${GEOLOCATION_MAX_RETRIES}), retrying...`, error?.message || error);
+        console.warn(
+          `Geocode failed (attempt ${attempt + 1}/${GEOLOCATION_MAX_RETRIES}), retrying...`,
+          error?.message || error,
+        );
         continue;
       }
     }
@@ -1526,7 +1567,8 @@ function getWeatherCacheKeyForLocation(location) {
 
 function buildWeatherData(payload) {
   if (!payload || payload.code !== "200" || typeof payload.now !== "object") {
-    const code = payload && typeof payload.code === "string" ? payload.code : "unknown";
+    const code =
+      payload && typeof payload.code === "string" ? payload.code : "unknown";
     throw createWeatherError(`QWeather now error: ${code}.`);
   }
 
@@ -1563,7 +1605,9 @@ async function fetchQWeatherNowByLocation(location, apiKey, apiHost = "") {
     return cached.data;
   }
 
-  const locationQuery = location?.id ? String(location.id) : `${longitude},${latitude}`;
+  const locationQuery = location?.id
+    ? String(location.id)
+    : `${longitude},${latitude}`;
   const url = buildQWeatherEndpoint(apiHost, "/v7/weather/now");
   url.searchParams.set("location", locationQuery);
   url.searchParams.set("key", apiKey);
@@ -1589,7 +1633,12 @@ async function fetchQWeatherNowByLocation(location, apiKey, apiHost = "") {
   }
 }
 
-async function fetchQWeatherNowByCity(cityName, apiKey, queryOverride = "", apiHost = "") {
+async function fetchQWeatherNowByCity(
+  cityName,
+  apiKey,
+  queryOverride = "",
+  apiHost = "",
+) {
   const city = typeof cityName === "string" ? cityName.trim() : "";
   if (!city) {
     throw createWeatherError("City name is required.", 400);
@@ -1761,7 +1810,11 @@ async function resolveWeatherRequestConfig() {
   const apiHost = resolveQWeatherApiHost(weather);
   let cities = weather.city;
   if (!Array.isArray(cities)) {
-    cities = [cities || runtimeConfig.weather.defaultCity || DEFAULT_WEATHER_CONFIG.city].filter(Boolean);
+    cities = [
+      cities ||
+        runtimeConfig.weather.defaultCity ||
+        DEFAULT_WEATHER_CONFIG.city,
+    ].filter(Boolean);
   }
   return {
     city: cities,
@@ -1899,13 +1952,17 @@ function requireAuth(req, res, next) {
 
   const session = activeSessions.get(token);
   if (!session) {
-    res.status(401).json({ success: false, message: "登录状态已失效，请重新登录。" });
+    res
+      .status(401)
+      .json({ success: false, message: "登录状态已失效，请重新登录。" });
     return;
   }
 
   if (Date.now() - session.createdAt > SESSION_TTL) {
     activeSessions.delete(token);
-    res.status(401).json({ success: false, message: "登录已过期，请重新登录。" });
+    res
+      .status(401)
+      .json({ success: false, message: "登录已过期，请重新登录。" });
     return;
   }
 
