@@ -3,15 +3,11 @@ version: "2.4"
 services:
   navigation:
     container_name: modern-navigation
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: modern-navigation:latest
+    image: ghcr.io/rain-kl/nav:latest
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3000
-      DEFAULT_WEATHER_CITY: '北京'
     ports:
       - "3000:3000"
     volumes:
